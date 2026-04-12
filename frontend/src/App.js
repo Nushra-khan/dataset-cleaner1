@@ -665,7 +665,7 @@ export default function App() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API}/upload`, { method: 'POST', body: form });
+      const res = await fetch(`${API}/upload`, { method: 'POST', body: form, mode: 'cors' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Upload failed');
       setUploadData(data);
