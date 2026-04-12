@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 
-"REACT_APP_API_URL": "https://dataset-cleaner1-production.up.railway.app" ;
-
+const API = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const ICON_MAP = {
   columns: '⌗',
   copy: '⊘',
