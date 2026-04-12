@@ -1,74 +1,151 @@
 # DataClean — Dataset Auto-Cleaning Platform
 
-Upload a CSV → auto-clean → download ML-ready data + report.
+> Upload a raw CSV → auto-clean → download ML-ready data + cleaning report.
+
+---
+
+## What It Does
+
+DataClean automatically processes your CSV files through a 7-step cleaning pipeline:
+
+1. **Normalize column names** — converts to snake_case
+2. **Remove duplicate rows**
+3. **Trim whitespace** — cleans all text columns
+4. **Fix data types** — detects and converts numeric, boolean, datetime, categorical
+5. **Word-to-number conversion** — `"twenty five"` → `25`
+6. **Fill missing values** — median for numbers, mode for text, forward-fill for dates
+7. **Cap outliers** — uses IQR method to handle extreme values
+
+---
 
 ## Project Structure
 
 ```
 dataset-cleaner/
 ├── backend/
-│   ├── main.py          # FastAPI app & endpoints
-│   ├── cleaner.py       # Cleaning & profiling logic
-│   ├── requirements.txt
-│   └── render.yaml
+│   ├── main.py            # FastAPI app & API endpoints
+│   ├── cleaner.py         # All cleaning & profiling logic
+│   └── requirements.txt   # Python dependencies
 └── frontend/
     ├── src/
-    │   ├── App.js       # Full React UI
-    │   └── index.js
+    │   ├── App.js         # Full React UI (single file)
+    │   └── index.js       # Entry point
     ├── public/
     │   └── index.html
     ├── package.json
-    └── vercel.json
+    └── vercel.json        # Vercel deployment config
 ```
 
-## Cleaning Pipeline
-
-1. **Normalize column names** → snake_case
-2. **Remove duplicates**
-3. **Trim whitespace**
-4. **Infer & fix types** (numeric, boolean, datetime, categorical)
-5. **Convert word numbers** ("twenty five" → 25)
-6. **Fill missing values** (median / mode / forward-fill)
-7. **Handle outliers** via IQR capping
+---
 
 ## Local Development
 
-### Backend
+### 1. Backend
+
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-### Frontend
+API will be running at `http://localhost:8000`
+
+### 2. Frontend
+
 ```bash
 cd frontend
 npm install
-# Set REACT_APP_API_URL=http://localhost:8000 in .env
+```
+
+Create a `.env` file inside the `frontend/` folder:
+
+```
+REACT_APP_API_URL=http://localhost:8000
+```
+
+Then start the dev server:
+
+```bash
 npm start
 ```
 
+Frontend will open at `http://localhost:3000`
+
+---
+
 ## Deploy
 
-### Backend → Render
-1. Push `backend/` folder to a GitHub repo
-2. Create new **Web Service** on [render.com](https://render.com)
-3. Set **Build Command**: `pip install -r requirements.txt`
-4. Set **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Note your Render URL: `https://your-app.onrender.com`
+### Backend → Railway
+
+1. Go to [railway.app](https://railway.app) and create a new project
+2. Click **"Deploy from GitHub repo"** and select your repo
+3. Railway will auto-detect Python — it installs from `requirements.txt` automatically
+4. Set the **Start Command** in Railway service settings:
+   ```
+   uvicorn main:app --host 0.0.0.0 --port $PORT
+   ```
+5. Go to **Settings → Networking → Generate Domain** to get your public URL
+6. Copy the URL — looks like: `https://your-app.up.railway.app`
+
+> **Tip:** If deploying the whole monorepo, set the **Root Directory** to `backend/` in Railway's service settings.
+
+---
 
 ### Frontend → Vercel
-1. Push `frontend/` folder to GitHub
-2. Import on [vercel.com](https://vercel.com)
-3. Set env variable: `REACT_APP_API_URL=https://your-app.onrender.com`
-4. Deploy — Vercel auto-detects Create React App
+
+1. Go to [vercel.com](https://vercel.com) and click **"Add New Project"**
+2. Import your GitHub repo (set root directory to `frontend/` if monorepo)
+3. Under **Environment Variables**, add:
+
+   | Key | Value |
+   |-----|-------|
+   | `REACT_APP_API_URL` | `https://your-app.up.railway.app` |
+
+4. Click **Deploy** — Vercel auto-detects Create React App
+
+> **Important:** Replace the value with your actual Railway URL. No trailing slash.
+
+---
 
 ## API Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/upload` | Upload CSV file |
-| POST | `/clean` | Run cleaning pipeline |
-| GET | `/download/{session_id}` | Download cleaned CSV |
-| GET | `/report/{session_id}` | Get cleaning report JSON |
-| GET | `/health` | Health check |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/upload` | Upload a CSV file |
+| `POST` | `/clean` | Run the cleaning pipeline |
+| `GET` | `/download/{session_id}` | Download the cleaned CSV |
+| `GET` | `/report/{session_id}` | Get the cleaning report as JSON |
+| `GET` | `/health` | Health check |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18 |
+| Backend | FastAPI (Python) |
+| Data Processing | Pandas, NumPy |
+| Backend Hosting | Railway |
+| Frontend Hosting | Vercel |
+| Storage | File-based (no database) |
+
+---
+
+## Error Handling
+
+| Situation | Message Shown |
+|-----------|---------------|
+| Empty file | "Uploaded file is empty" |
+| File over 5MB | "File too large. Max size is 5MB" |
+| Wrong file type | "Please upload a valid CSV file" |
+| Corrupted file | "Error reading file. Check format" |
+
+---
+
+## Notes
+
+- Sessions are stored in memory — restarting the server clears them
+- Max file size: **5MB**
+- Accepted format: **CSV only**
+- Cleaned file is available for download immediately after processing
