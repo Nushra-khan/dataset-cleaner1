@@ -143,7 +143,7 @@ Frontend will open at `http://localhost:3000`
 | Wrong file type | "Please upload a valid CSV file" |
 | Corrupted file | "Error reading file. Check format" |
 
----
+----
 
 ## Notes
 
