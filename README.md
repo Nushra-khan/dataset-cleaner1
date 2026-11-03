@@ -4,7 +4,7 @@
 
 > Upload a raw CSV → auto-clean → download ML-ready data + cleaning report.
 
----
+---------
 
 ## What It Does
 
